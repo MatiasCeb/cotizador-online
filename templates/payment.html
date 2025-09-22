@@ -1,0 +1,8 @@
+<h2>Plan de Pago</h2>
+<p>Costo total de la garantía: ${{.Cost}}</p>
+<label for="plan-pago">Seleccione forma de pago:</label>
+<select name="plan-pago" id="plan-pago">
+    {{range .Plans}}
+    <option value="{{.Name}}">{{.Name}}: ${{.Amount}} por cuota</option>
+    {{end}}
+</select>
