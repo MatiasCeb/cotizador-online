@@ -30,7 +30,7 @@ COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/static ./static
 
 # Expose port
-EXPOSE 8080
+EXPOSE 3000
 
 # Command to run
 CMD ["./main"]

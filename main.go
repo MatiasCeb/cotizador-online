@@ -27,8 +27,8 @@ func main() {
 	http.HandleFunc("/calculate", calculateHandler)
 	http.HandleFunc("/send-email", sendEmailHandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	log.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Server starting on :3000")
+	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
