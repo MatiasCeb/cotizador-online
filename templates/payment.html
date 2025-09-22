@@ -1,8 +1,14 @@
 <h2>Plan de Pago</h2>
 <p>Costo total de la garantía: ${{.Cost}}</p>
-<label for="plan-pago">Seleccione forma de pago:</label>
-<select name="plan-pago" id="plan-pago">
+<label>Seleccione forma de pago:</label>
+<div class="payment-plans">
     {{range .Plans}}
-    <option value="{{.Name}}">{{.Name}}: ${{.Amount}} por cuota</option>
+    <div class="plan-card">
+        <input type="radio" name="plan-pago" value="{{.Name}}" id="{{.Name}}">
+        <label for="{{.Name}}">
+            <h3>{{.Name}}</h3>
+            <p>${{.Amount}} por cuota</p>
+        </label>
+    </div>
     {{end}}
-</select>
+</div>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -12,13 +13,13 @@ import (
 )
 
 type CalculationData struct {
-	Cost float64
+	Cost int
 	Plans []PaymentPlan
 }
 
 type PaymentPlan struct {
 	Name string
-	Amount float64
+	Amount int
 }
 
 func main() {
@@ -67,16 +68,17 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cost := (valorMes + expensas) * float64(duracion) / 12 * factor
+	costRounded := int(math.Round(cost))
 
 	// Payment plans
 	plans := []PaymentPlan{
-		{"Pago único", cost},
-		{"3 cuotas", cost / 3},
-		{"6 cuotas", cost / 6},
-		{"12 cuotas", cost / 12},
+		{"Pago único", costRounded},
+		{"3 cuotas", int(math.Round(cost / 3))},
+		{"6 cuotas", int(math.Round(cost / 6))},
+		{"12 cuotas", int(math.Round(cost / 12))},
 	}
 
-	data := CalculationData{Cost: cost, Plans: plans}
+	data := CalculationData{Cost: costRounded, Plans: plans}
 
 	tmpl := template.Must(template.ParseFiles("templates/payment.html"))
 	tmpl.Execute(w, data)
