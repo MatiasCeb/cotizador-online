@@ -23,11 +23,17 @@ type PaymentPlan struct {
 
 func main() {
 	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/calculate", calculateHandler)
 	http.HandleFunc("/send-email", sendEmailHandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	log.Println("Server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "OK")
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
