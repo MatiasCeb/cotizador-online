@@ -98,6 +98,13 @@ button:hover {
     box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
 }
 
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+}
+
 .payment-plans {
     display: flex;
     flex-wrap: wrap;
