@@ -2,6 +2,33 @@
   box-sizing: border-box;
 }
 
+.breadcrumb {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    list-style: none;
+    padding: 0;
+}
+
+.breadcrumb li {
+    display: inline-block;
+    margin: 0 5px;
+    padding: 8px 16px;
+    background-color: #e0e0e0;
+    color: #757575;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.breadcrumb li.active {
+    background-color: #ff9800;
+    color: white;
+}
+
+.breadcrumb li.completed {
+    background-color: #4caf50;
+    color: white;
+}
 
 body {
     font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif;

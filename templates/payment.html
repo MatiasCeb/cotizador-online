@@ -1,14 +1,31 @@
+{{define "content"}}
+<ul class="breadcrumb">
+    <li class="completed">Paso 1: Cálculo</li>
+    <li class="active">Paso 2: Pago</li>
+    <li>Paso 3: Email</li>
+    <li>Paso 4: Resultado</li>
+</ul>
+
+<section id="payment">
 <h2>Plan de Pago</h2>
 <p>Costo total de la garantía: ${{.Cost}}</p>
-<label>Seleccione forma de pago:</label>
-<div class="payment-plans">
-    {{range .Plans}}
-    <div class="plan-card">
-        <input type="radio" name="plan-pago" value="{{.Name}}" id="{{.Name}}">
-        <label for="{{.Name}}">
-            <h3>{{.Name}}</h3>
-            <p>${{.Amount}} por cuota</p>
-        </label>
+<form hx-post="/select-plan" hx-target="body" hx-swap="innerHTML">
+    <input type="hidden" name="cost" value="{{.Cost}}">
+    <label>Seleccione forma de pago:</label>
+    <div class="payment-plans">
+        {{range .Plans}}
+        <div class="plan-card">
+            <input type="radio" name="plan-pago" value="{{.Name}}" id="{{.Name}}" required>
+            <label for="{{.Name}}">
+                <h3>{{.Name}}</h3>
+                <p>${{.Amount}} por cuota</p>
+            </label>
+        </div>
+        {{end}}
     </div>
-    {{end}}
-</div>
+    <button type="submit">Continuar</button>
+</form>
+</section>
+{{end}}
+
+{{template "base" .}}

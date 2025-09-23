@@ -1,0 +1,20 @@
+{{define "content"}}
+<ul class="breadcrumb">
+    <li class="completed">Paso 1: Cálculo</li>
+    <li class="completed">Paso 2: Pago</li>
+    <li class="completed">Paso 3: Email</li>
+    <li class="active">Paso 4: Resultado</li>
+</ul>
+<section id="result">
+<h2>Resultado del Envío</h2>
+{{if .Success}}
+<p>Cotización enviada exitosamente a {{.Email}}</p>
+{{else}}
+<p>Error enviando email: {{.Error}}</p>
+{{end}}
+
+<button onclick="window.location.href='/'">Volver al Inicio</button>
+</section>
+{{end}}
+
+{{template "base" .}}

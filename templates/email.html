@@ -1,0 +1,22 @@
+{{define "content"}}
+<ul class="breadcrumb">
+    <li class="completed">Paso 1: Cálculo</li>
+    <li class="completed">Paso 2: Pago</li>
+    <li class="active">Paso 3: Email</li>
+    <li>Paso 4: Resultado</li>
+</ul>
+<section id="email">
+<h2>Envío de Cotización</h2>
+<p>Costo total: ${{.Cost}}</p>
+<p>Plan seleccionado: {{.Plan}}</p>
+<form hx-post="/send-email" hx-target="body" hx-swap="innerHTML">
+    <input type="hidden" name="cost" value="{{.Cost}}">
+    <input type="hidden" name="plan" value="{{.Plan}}">
+    <label for="email">Correo Electrónico:</label>
+    <input type="email" name="email" id="email" required><br>
+    <button type="submit">Enviar Cotización</button>
+</form>
+</section>
+{{end}}
+
+{{template "base" .}}

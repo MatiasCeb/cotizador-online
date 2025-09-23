@@ -15,6 +15,7 @@ import (
 type CalculationData struct {
 	Cost int
 	Plans []PaymentPlan
+	Step int
 }
 
 type PaymentPlan struct {
@@ -22,10 +23,22 @@ type PaymentPlan struct {
 	Amount int
 }
 
+type EmailData struct {
+	Cost int
+	Plan string
+}
+
+type ResultData struct {
+	Success bool
+	Email   string
+	Error   string
+}
+
 func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/calculate", calculateHandler)
+	http.HandleFunc("/select-plan", selectPlanHandler)
 	http.HandleFunc("/send-email", sendEmailHandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	log.Println("Server starting on :3000")
@@ -38,7 +51,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/index.html"))
+	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/index.html"))
 	tmpl.Execute(w, nil)
 }
 
@@ -78,37 +91,63 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 		{"12 cuotas", int(math.Round(cost / 12))},
 	}
 
-	data := CalculationData{Cost: costRounded, Plans: plans}
+	data := CalculationData{Cost: costRounded, Plans: plans, Step: 2}
 
-	tmpl := template.Must(template.ParseFiles("templates/payment.html"))
+	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/payment.html"))
+	tmpl.Execute(w, data)
+}
+
+func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	costStr := r.FormValue("cost")
+	plan := r.FormValue("plan-pago")
+
+	cost, _ := strconv.Atoi(costStr)
+
+	data := EmailData{Cost: cost, Plan: plan}
+
+	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/email.html"))
 	tmpl.Execute(w, data)
 }
 
 func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
-	// For demo, assume cost is stored or passed; here hardcode or from session
-	// In real app, use sessions or pass data
-	body := fmt.Sprintf("Cotización: Costo total $1000. Plan seleccionado: Pago único.")
+	costStr := r.FormValue("cost")
+	plan := r.FormValue("plan")
+
+	cost, _ := strconv.Atoi(costStr)
+
+	body := fmt.Sprintf("Cotización: Costo total $%d. Plan seleccionado: %s.", cost, plan)
 
 	from := os.Getenv("EMAIL_FROM")
 	password := os.Getenv("EMAIL_PASSWORD")
 
+	data := ResultData{Email: email}
+
 	if from == "" || password == "" {
-		fmt.Fprintf(w, "<p>Error: Configurar variables de entorno EMAIL_FROM y EMAIL_PASSWORD</p>")
-		return
-	}
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", from)
-	m.SetHeader("To", email)
-	m.SetHeader("Subject", "Cotización de Garantía")
-	m.SetBody("text/plain", body)
-
-	d := gomail.NewDialer("castilloconsultores.com.ar", 465, from, password)
-
-	if err := d.DialAndSend(m); err != nil {
-		fmt.Fprintf(w, "<p>Error enviando email: %v</p>", err)
+		data.Success = false
+		data.Error = "Configurar variables de entorno EMAIL_FROM y EMAIL_PASSWORD"
 	} else {
-		fmt.Fprintf(w, "<p>Cotización enviada a %s</p>", email)
+		m := gomail.NewMessage()
+		m.SetHeader("From", from)
+		m.SetHeader("To", email)
+		m.SetHeader("Subject", "Cotización de Garantía")
+		m.SetBody("text/plain", body)
+
+		d := gomail.NewDialer("castilloconsultores.com.ar", 465, from, password)
+
+		if err := d.DialAndSend(m); err != nil {
+			data.Success = false
+			data.Error = err.Error()
+		} else {
+			data.Success = true
+		}
 	}
+
+	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/result.html"))
+	tmpl.Execute(w, data)
 }
