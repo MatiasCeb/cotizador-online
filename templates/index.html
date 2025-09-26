@@ -8,7 +8,6 @@
 </ul>
 
 <section id="calculo">
-    <h2>Cálculo de Costo de Garantía</h2>
     <form hx-post="/calculate" hx-target="body" hx-swap="innerHTML">
         <label for="tipo-garantia">Tipo de Garantía:</label>
         <select name="tipo-garantia" id="tipo-garantia">
@@ -36,7 +35,7 @@
         <input type="number" name="expensas" id="expensas" step="0.01" required><br>
 
         <label for="cupon">Cupón de descuento:</label>
-        <input type="text" name="cupon" id="cupon"><br>
+        <input type="text" name="cupon" id="cupon" autocomplete="off"><br>
 
         <button type="submit">Calcular</button>
     </form>

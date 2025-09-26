@@ -8,36 +8,49 @@
     margin-bottom: 20px;
     list-style: none;
     padding: 0;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
 }
 
 .breadcrumb li {
-    display: inline-block;
-    margin: 0 5px;
-    padding: 8px 16px;
+    flex: 1;
+    margin: 0 1px;
     background-color: #e0e0e0;
-    color: #757575;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 2px;
+    text-indent: -9999px;
+    overflow: hidden;
 }
 
 .breadcrumb li.active {
-    background-color: #ff9800;
-    color: white;
+    background-color: rgb(238, 104, 0);
 }
 
 .breadcrumb li.completed {
     background-color: #4caf50;
-    color: white;
+}
+
+header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+.logo {
+    height: 60px; /* Adjust size as needed */
+    width: auto;
 }
 
 body {
-    font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Nunito Sans', sans-serif;
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     background-color: #fafafa;
     color: #424242;
     line-height: 1.6;
+    position: relative;
 }
 
 h1, h2 {
@@ -47,11 +60,15 @@ h1, h2 {
     letter-spacing: 1px;
 }
 
+h1 {
+    margin-top: 80px;
+    color: rgb(238, 104, 0);
+}
+
 section {
     margin-bottom: 40px;
-    padding: 28px;
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
+    padding: 4px 8px;
+    background-color: #eff0ff;
     border-radius: 8px;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
 }
@@ -59,31 +76,59 @@ section {
 label {
     display: block;
     margin-top: 14px;
-    font-weight: 500;
-    color: #757575;
+    font-weight: 600;
+    color: #0F0054;
     font-size: 14px;
 }
 
-input, select {
+input {
     width: 100%;
-    padding: 11px;
+    padding: 8px 0;
     margin-top: 7px;
-    border: 1px solid #bdbdbd;
-    border-radius: 4px;
+    border: none;
+    border-bottom: 1px solid rgb(238, 104, 0);
     font-size: 16px;
-    background-color: #fff;
-    transition: border-color 0.2s ease;
+    background-color: transparent;
+    transition: border-bottom-width 0.2s ease;
+    box-shadow: none;
+}
+
+select {
+    width: 100%;
+    padding: 8px 20px 8px 0;
+    margin-top: 7px;
+    border: none;
+    border-bottom: 1px solid rgb(238, 104, 0);
+    font-size: 16px;
+    background-color: transparent;
+    transition: border-bottom-width 0.2s ease;
+    box-shadow: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6"><polygon points="0,0 10,0 5,6" fill="%23ee6800"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: 10px;
 }
 
 input:focus, select:focus {
-    border-color: #ff9800;
+    border-bottom-width: 1px;
     outline: none;
+}
+
+option {
+    background-color: #eff0ff;
+    color: #0F0054;
+    padding: 8px;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 16px;
 }
 
 button {
     margin-top: 22px;
     padding: 13px 26px;
-    background-color: #ff9800;
+    background-color: rgb(238, 104, 0);
     color: white;
     border: none;
     border-radius: 6px;
@@ -126,7 +171,7 @@ button:disabled {
 
 .plan-card:hover {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    border-color: #ff9800;
+    border-color: rgb(238, 104, 0);
 }
 
 .plan-card input[type="radio"] {
@@ -135,7 +180,7 @@ button:disabled {
 
 .plan-card input[type="radio"]:checked + label {
     background-color: #fff3e0;
-    border: 2px solid #ff9800;
+    border: 2px solid rgb(238, 104, 0);
 }
 
 .plan-card label {
