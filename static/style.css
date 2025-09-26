@@ -156,6 +156,7 @@ button:disabled {
     gap: 20px;
     justify-content: center;
     padding-top: 20px;
+    padding-bottom: 32px;
 }
 
 .plan-card {
@@ -248,5 +249,6 @@ button:disabled {
 @media (min-width: 768px) {
     .plan-card {
         flex: 1 1 calc(33.333% - 20px);
+        min-height: 160px;
     }
 }
