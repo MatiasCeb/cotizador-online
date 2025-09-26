@@ -9,6 +9,12 @@
 <section id="payment">
 <h2>Plan de Pago</h2>
 <p>Costo total de la garantía: ${{.Cost}}</p>
+{{if .DiscountApplied}}
+<p>Costo original: ${{.OriginalCost}}</p>
+{{end}}
+{{if .DiscountMessage}}
+<p>{{.DiscountMessage}}</p>
+{{end}}
 <form hx-post="/select-plan" hx-target="body" hx-swap="innerHTML">
     <input type="hidden" name="cost" value="{{.Cost}}">
     <label>Seleccione forma de pago:</label>

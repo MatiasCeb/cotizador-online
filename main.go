@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -14,6 +15,10 @@ import (
 
 type CalculationData struct {
 	Cost int
+	OriginalCost int
+	DiscountApplied bool
+	DiscountPercent int
+	DiscountMessage string
 	Plans []PaymentPlan
 	Step int
 }
@@ -37,7 +42,50 @@ type ResultData struct {
 	Error   string
 }
 
+type Coupon struct {
+	Code      string `json:"code"`
+	Percent   int    `json:"percent"`
+	Remaining int    `json:"remaining"`
+}
+
+var coupons map[string]*Coupon
+
+func loadCoupons() {
+	coupons = make(map[string]*Coupon)
+	data, err := os.ReadFile("coupons.json")
+	if err != nil {
+		// If file doesn't exist, initialize with default
+		coupons["DESC10"] = &Coupon{Code: "DESC10", Percent: 10, Remaining: 5}
+		saveCoupons()
+		return
+	}
+	var couponList []Coupon
+	if err := json.Unmarshal(data, &couponList); err != nil {
+		log.Println("Error loading coupons:", err)
+		return
+	}
+	for _, c := range couponList {
+		coupons[c.Code] = &c
+	}
+}
+
+func saveCoupons() {
+	var couponList []Coupon
+	for _, c := range coupons {
+		couponList = append(couponList, *c)
+	}
+	data, err := json.MarshalIndent(couponList, "", "  ")
+	if err != nil {
+		log.Println("Error marshaling coupons:", err)
+		return
+	}
+	if err := os.WriteFile("coupons.json", data, 0644); err != nil {
+		log.Println("Error saving coupons:", err)
+	}
+}
+
 func main() {
+	loadCoupons()
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/calculate", calculateHandler)
@@ -69,6 +117,7 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	duracionStr := r.FormValue("duracion")
 	valorMesStr := r.FormValue("valor-mes")
 	expensasStr := r.FormValue("expensas")
+	cupon := r.FormValue("cupon")
 
 	duracion, _ := strconv.Atoi(duracionStr)
 	valorMes, _ := strconv.ParseFloat(valorMesStr, 64)
@@ -86,16 +135,43 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	cost := (valorMes + expensas) * float64(duracion) / 12 * factor
 	costRounded := int(math.Round(cost))
 
-	// Payment plans
-	plans := []PaymentPlan{
-		{"Transferencia", costRounded},
-		{"Pago único", costRounded},
-		{"3 cuotas", int(math.Round(cost / 3))},
-		{"6 cuotas", int(math.Round(cost / 6))},
-		{"12 cuotas", int(math.Round(cost / 12))},
+	// Check coupon
+	discountPercent := 0
+	discountMessage := ""
+	if cupon != "" {
+		if c, ok := coupons[cupon]; ok && c.Remaining > 0 {
+			discountPercent = c.Percent
+			c.Remaining--
+			saveCoupons()
+			discountMessage = fmt.Sprintf("Cupón aplicado: %s (%d%% descuento)", cupon, discountPercent)
+		} else {
+			discountMessage = "Cupón inválido o agotado"
+		}
 	}
 
-	data := CalculationData{Cost: costRounded, Plans: plans, Step: 2}
+	discountedCost := costRounded
+	if discountPercent > 0 {
+		discountedCost = int(math.Round(float64(costRounded) * (1 - float64(discountPercent)/100)))
+	}
+
+	// Payment plans
+	plans := []PaymentPlan{
+		{"Transferencia", discountedCost},
+		{"Pago único", discountedCost},
+		{"3 cuotas", int(math.Round(float64(discountedCost) / 3))},
+		{"6 cuotas", int(math.Round(float64(discountedCost) / 6))},
+		{"12 cuotas", int(math.Round(float64(discountedCost) / 12))},
+	}
+
+	data := CalculationData{
+		Cost: discountedCost,
+		OriginalCost: costRounded,
+		DiscountApplied: discountPercent > 0,
+		DiscountPercent: discountPercent,
+		DiscountMessage: discountMessage,
+		Plans: plans,
+		Step: 2,
+	}
 
 	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/payment.html"))
 	tmpl.Execute(w, data)
