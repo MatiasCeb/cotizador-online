@@ -17,7 +17,7 @@
 {{end}}
 <form hx-post="/select-plan" hx-target="body" hx-swap="innerHTML">
     <input type="hidden" name="cost" value="{{.Cost}}">
-    <label>Seleccione forma de pago:</label>
+    <label class="payment-label">Seleccione forma de pago:</label>
     <div class="payment-plans">
         {{range .Plans}}
         <div class="plan-card">
@@ -31,7 +31,6 @@
         </div>
         {{end}}
     </div>
-    <button type="submit">Continuar</button>
 </form>
 </section>
 {{end}}

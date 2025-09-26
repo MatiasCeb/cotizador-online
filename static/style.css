@@ -237,3 +237,8 @@ button:disabled {
 .plan-card input[type="radio"]:checked + label .select-button {
     display: block;
 }
+
+.payment-label {
+    font-weight: bold;
+    font-size: 18px;
+}
