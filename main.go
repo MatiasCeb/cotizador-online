@@ -56,6 +56,7 @@ func loadCoupons() {
 	if err != nil {
 		// If file doesn't exist, initialize with default
 		coupons["DESC10"] = &Coupon{Code: "DESC10", Percent: 10, Remaining: 5}
+		coupons["RAICES"] = &Coupon{Code: "RAICES", Percent: 25, Remaining: 3}
 		saveCoupons()
 		return
 	}
@@ -67,6 +68,14 @@ func loadCoupons() {
 	for _, c := range couponList {
 		coupons[c.Code] = &c
 	}
+	// Ensure default coupons are present
+	if _, ok := coupons["DESC10"]; !ok {
+		coupons["DESC10"] = &Coupon{Code: "DESC10", Percent: 10, Remaining: 5}
+	}
+	if _, ok := coupons["RAICES"]; !ok {
+		coupons["RAICES"] = &Coupon{Code: "RAICES", Percent: 25, Remaining: 3}
+	}
+	saveCoupons()
 }
 
 func saveCoupons() {
