@@ -121,8 +121,6 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tipoGarantia := r.FormValue("tipo-garantia")
-	tipoAlquiler := r.FormValue("tipo-alquiler")
 	duracionStr := r.FormValue("duracion")
 	valorMesStr := r.FormValue("valor-mes")
 	expensasStr := r.FormValue("expensas")
@@ -132,16 +130,20 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	valorMes, _ := strconv.ParseFloat(valorMesStr, 64)
 	expensas, _ := strconv.ParseFloat(expensasStr, 64)
 
-	// Simple calculation logic
-	factor := 0.1 // 10% of annual rent + expenses
-	if tipoGarantia == "renovacion" {
-		factor = 0.08
-	}
-	if tipoAlquiler == "comercial" {
-		factor += 0.02
+	// Calculation based on duration
+	var multiplier float64
+	switch duracion {
+	case 12:
+		multiplier = 0.8
+	case 24:
+		multiplier = 1.5
+	case 36:
+		multiplier = 1.75
+	default:
+		multiplier = 0.8 // default to 12 months
 	}
 
-	cost := (valorMes + expensas) * float64(duracion) / 12 * factor
+	cost := (valorMes + expensas) * multiplier
 	costRounded := int(math.Round(cost))
 
 	// Check coupon
