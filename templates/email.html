@@ -15,6 +15,12 @@
 <form hx-post="/send-email" hx-target="body" hx-swap="innerHTML" hx-indicator="#loading" hx-disabled-elt="#submit-btn">
     <input type="hidden" name="cost" value="{{.Cost}}">
     <input type="hidden" name="plan" value="{{.Plan}}">
+    <label for="name">Nombre:</label>
+    <input type="text" name="name" id="name" required><br>
+    <label for="surname">Apellido:</label>
+    <input type="text" name="surname" id="surname" required><br>
+    <label for="phone">Teléfono:</label>
+    <input type="tel" name="phone" id="phone" required><br>
     <label for="email">Correo Electrónico:</label>
     <input type="email" name="email" id="email" required><br>
     <button type="submit" id="submit-btn">Enviar Cotización</button>

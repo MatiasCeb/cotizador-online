@@ -24,8 +24,11 @@ type PaymentPlan struct {
 }
 
 type EmailData struct {
-	Cost int
-	Plan string
+	Cost     int
+	Plan     string
+	Name     string
+	Surname  string
+	Phone    string
 }
 
 type ResultData struct {
@@ -109,7 +112,7 @@ func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
 
 	cost, _ := strconv.Atoi(costStr)
 
-	data := EmailData{Cost: cost, Plan: plan}
+	data := EmailData{Cost: cost, Plan: plan, Name: "", Surname: "", Phone: ""}
 
 	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/email.html"))
 	tmpl.Execute(w, data)
@@ -119,10 +122,13 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	costStr := r.FormValue("cost")
 	plan := r.FormValue("plan")
+	name := r.FormValue("name")
+	surname := r.FormValue("surname")
+	phone := r.FormValue("phone")
 
 	cost, _ := strconv.Atoi(costStr)
 
-	body := fmt.Sprintf("Cotización: Costo total $%d. Plan seleccionado: %s.", cost, plan)
+	body := fmt.Sprintf("Cliente: %s %s\nTeléfono: %s\nEmail: %s\n\nCotización: Costo total $%d. Plan seleccionado: %s.", name, surname, phone, email, cost, plan)
 
 	from := os.Getenv("EMAIL_FROM")
 	password := os.Getenv("EMAIL_PASSWORD")
