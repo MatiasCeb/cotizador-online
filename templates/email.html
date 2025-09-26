@@ -9,9 +9,6 @@
 <h2>Envío de Cotización</h2>
 <p>Costo total: ${{.Cost}}</p>
 <p>Plan seleccionado: {{.Plan}}</p>
-<div id="loading" class="htmx-indicator">
-    <p>Enviando cotización, por favor espere...</p>
-</div>
 <form hx-post="/send-email" hx-target="body" hx-swap="innerHTML" hx-indicator="#loading" hx-disabled-elt="#submit-btn">
     <input type="hidden" name="cost" value="{{.Cost}}">
     <input type="hidden" name="plan" value="{{.Plan}}">
@@ -24,6 +21,9 @@
     <label for="email">Correo Electrónico:</label>
     <input type="email" name="email" id="email" required><br>
     <button type="submit" id="submit-btn">Enviar Cotización</button>
+    <div id="loading" class="htmx-indicator">
+        <p>Enviando cotización, por favor espere...</p>
+    </div>
 </form>
 </section>
 {{end}}
