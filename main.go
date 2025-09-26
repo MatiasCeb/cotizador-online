@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"gopkg.in/gomail.v2"
 )
@@ -26,6 +27,8 @@ type CalculationData struct {
 type PaymentPlan struct {
 	Name string
 	Amount int
+	Discount int
+	PerCuota bool
 }
 
 type EmailData struct {
@@ -166,13 +169,33 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Payment plans
-	plans := []PaymentPlan{
-		{"Transferencia", discountedCost},
-		{"Pago único", discountedCost},
-		{"3 cuotas", int(math.Round(float64(discountedCost) / 3))},
-		{"6 cuotas", int(math.Round(float64(discountedCost) / 6))},
-		{"12 cuotas", int(math.Round(float64(discountedCost) / 12))},
+	plansData := []struct {
+		Name     string
+		Discount int
+	}{
+		{"Transferencia", 15},
+		{"Pago único", 0},
+		{"3 cuotas", 0},
+		{"6 cuotas", 0},
+		{"12 cuotas", 0},
 	}
+
+	var plans []PaymentPlan
+	for _, pd := range plansData {
+		total := float64(discountedCost) * (1 - float64(pd.Discount)/100)
+		var amount int
+		if strings.Contains(pd.Name, "cuota") {
+			parts := strings.Split(pd.Name, " ")
+			n, _ := strconv.Atoi(parts[0])
+			amount = int(math.Round(total / float64(n)))
+		} else {
+			amount = int(math.Round(total))
+		}
+		perCuota := strings.Contains(pd.Name, "cuota")
+		log.Printf("Plan: %s, Amount: %d, Discount: %d, PerCuota: %t", pd.Name, amount, pd.Discount, perCuota)
+		plans = append(plans, PaymentPlan{Name: pd.Name, Amount: amount, Discount: pd.Discount, PerCuota: perCuota})
+	}
+	log.Printf("Number of plans: %d", len(plans))
 
 	data := CalculationData{
 		Cost: discountedCost,
@@ -194,9 +217,10 @@ func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	costStr := r.FormValue("cost")
-	plan := r.FormValue("plan-pago")
-
+	planAndAmount := r.FormValue("plan-pago")
+	parts := strings.Split(planAndAmount, "|")
+	plan := parts[0]
+	costStr := parts[1]
 	cost, _ := strconv.Atoi(costStr)
 
 	data := EmailData{Cost: cost, Plan: plan, Name: "", Surname: "", Phone: ""}

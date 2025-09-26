@@ -21,10 +21,12 @@
     <div class="payment-plans">
         {{range .Plans}}
         <div class="plan-card">
-            <input type="radio" name="plan-pago" value="{{.Name}}" id="{{.Name}}" required>
+            <input type="radio" name="plan-pago" value="{{.Name}}|{{.Amount}}" id="{{.Name}}" required>
             <label for="{{.Name}}">
-                <h3>{{.Name}}</h3>
-                <p>${{.Amount}} por cuota</p>
+                {{if gt .Discount 0}}<p class="discount">{{.Discount}}% descuento</p>{{end}}
+                <h3 class="plan-name">{{.Name}}</h3>
+                <p class="amount">${{.Amount}} {{if .PerCuota}}por cuota{{else}}total{{end}}</p>
+                <button type="submit" class="select-button">Lo quiero</button>
             </label>
         </div>
         {{end}}
