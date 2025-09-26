@@ -85,6 +85,7 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Payment plans
 	plans := []PaymentPlan{
+		{"Transferencia", costRounded},
 		{"Pago único", costRounded},
 		{"3 cuotas", int(math.Round(cost / 3))},
 		{"6 cuotas", int(math.Round(cost / 6))},
@@ -134,7 +135,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		m := gomail.NewMessage()
 		m.SetHeader("From", from)
-		m.SetHeader("To", email)
+		m.SetHeader("To", email, from)
 		m.SetHeader("Subject", "Cotización de Garantía")
 		m.SetBody("text/plain", body)
 
