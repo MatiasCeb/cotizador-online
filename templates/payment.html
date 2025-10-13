@@ -27,7 +27,8 @@
             <label for="{{.Name}}">
                 {{if gt .Discount 0}}<p class="discount">{{.Discount}}% descuento</p>{{end}}
                 <h3 class="plan-name">{{.Name}}</h3>
-                <p class="amount">${{.Amount}} {{if .PerCuota}}por cuota{{else}}total{{end}}</p>
+                <p class="amount">${{.Amount}}</p>
+                <p class="amount-text">{{if .PerCuota}}por cuota{{else}}total{{end}}</p>
                 <button type="submit" class="select-button">Lo quiero</button>
             </label>
         </div>
