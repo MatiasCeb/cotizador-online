@@ -1,76 +1,16 @@
 [
   {
-    "code": "RAICES10",
+    "code": "RAICES10PLUS",
     "percent": 10,
     "remaining": 1000000
   },
   {
-    "code": "NATURALEZA10",
-    "percent": 10,
-    "remaining": 1000000
-  },
-  {
-    "code": "VERDE10",
-    "percent": 10,
-    "remaining": 1000000
-  },
-  {
-    "code": "ECOLOGICO10",
-    "percent": 10,
-    "remaining": 1000000
-  },
-  {
-    "code": "SOSTENIBLE10",
-    "percent": 10,
-    "remaining": 1000000
-  },
-  {
-    "code": "RAICES20",
+    "code": "ALQUILA20YA",
     "percent": 20,
     "remaining": 1000000
   },
   {
-    "code": "NATURALEZA20",
-    "percent": 20,
-    "remaining": 1000000
-  },
-  {
-    "code": "VERDE20",
-    "percent": 20,
-    "remaining": 1000000
-  },
-  {
-    "code": "ECOLOGICO20",
-    "percent": 20,
-    "remaining": 1000000
-  },
-  {
-    "code": "SOSTENIBLE20",
-    "percent": 20,
-    "remaining": 1000000
-  },
-  {
-    "code": "RAICES30",
-    "percent": 30,
-    "remaining": 1000000
-  },
-  {
-    "code": "NATURALEZA30",
-    "percent": 30,
-    "remaining": 1000000
-  },
-  {
-    "code": "VERDE30",
-    "percent": 30,
-    "remaining": 1000000
-  },
-  {
-    "code": "ECOLOGICO30",
-    "percent": 30,
-    "remaining": 1000000
-  },
-  {
-    "code": "SOSTENIBLE30",
+    "code": "MIHOGAR30",
     "percent": 30,
     "remaining": 1000000
   }
