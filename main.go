@@ -166,7 +166,7 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 		Name     string
 		Discount int
 	}{
-		{"Pago único", 15},
+		{"Pago único", 0},
 		{"Transferencia", 15},
 		{"3 cuotas", 0},
 		{"6 cuotas", 0},
