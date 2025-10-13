@@ -1,12 +1,12 @@
 [
   {
-    "code": "DESC10",
-    "percent": 10,
-    "remaining": 0
-  },
-  {
     "code": "RAICES",
     "percent": 25,
     "remaining": 3
+  },
+  {
+    "code": "DESC10",
+    "percent": 10,
+    "remaining": 0
   }
 ]

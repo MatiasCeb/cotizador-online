@@ -173,8 +173,8 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 		Name     string
 		Discount int
 	}{
+		{"Pago único", 15},
 		{"Transferencia", 15},
-		{"Pago único", 0},
 		{"3 cuotas", 0},
 		{"6 cuotas", 0},
 		{"12 cuotas", 0},
@@ -183,6 +183,9 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	var plans []PaymentPlan
 	for _, pd := range plansData {
 		total := float64(discountedCost) * (1 - float64(pd.Discount)/100)
+		if pd.Name == "12 cuotas" {
+			total = total * 1.1
+		}
 		var amount int
 		if strings.Contains(pd.Name, "cuota") {
 			parts := strings.Split(pd.Name, " ")
