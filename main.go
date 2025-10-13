@@ -58,8 +58,9 @@ func loadCoupons() {
 	data, err := os.ReadFile("coupons.json")
 	if err != nil {
 		// If file doesn't exist, initialize with default
-		coupons["DESC10"] = &Coupon{Code: "DESC10", Percent: 10, Remaining: 5}
-		coupons["RAICES"] = &Coupon{Code: "RAICES", Percent: 25, Remaining: 3}
+		coupons["RAICES10PLUS"] = &Coupon{Code: "RAICES10PLUS", Percent: 10, Remaining: 100000}
+		coupons["ALQUILA20YA"] = &Coupon{Code: "ALQUILA20YA", Percent: 20, Remaining: 100000}
+		coupons["MIHOGAR30"] = &Coupon{Code: "MIHOGAR30", Percent: 30, Remaining: 100000}
 		saveCoupons()
 		return
 	}
