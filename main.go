@@ -252,13 +252,13 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     surname := strings.TrimSpace(r.FormValue("surname"))
     phone := strings.TrimSpace(r.FormValue("phone"))
 
-    log.Printf("Form values: email=%s, cost=%s, plan=%s, name=%s, surname=%s, phone=%s", email, costStr, plan, name, surname, phone)
-
     // Skip processing if this is an empty form submission (likely duplicate HTMX request)
     if email == "" && costStr == "" && plan == "" && name == "" && surname == "" && phone == "" {
         log.Printf("Empty form submission detected, skipping")
         return
     }
+
+    log.Printf("Processing form values: email=%s, cost=%s, plan=%s, name=%s, surname=%s, phone=%s", email, costStr, plan, name, surname, phone)
 
     cost, _ := strconv.Atoi(costStr) // si no es número, queda 0
 
