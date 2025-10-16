@@ -254,6 +254,12 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
     log.Printf("Form values: email=%s, cost=%s, plan=%s, name=%s, surname=%s, phone=%s", email, costStr, plan, name, surname, phone)
 
+    // Skip processing if this is an empty form submission (likely duplicate HTMX request)
+    if email == "" && costStr == "" && plan == "" && name == "" && surname == "" && phone == "" {
+        log.Printf("Empty form submission detected, skipping")
+        return
+    }
+
     cost, _ := strconv.Atoi(costStr) // si no es número, queda 0
 
     // 2) Variables de entorno
@@ -273,13 +279,6 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     }
     log.Printf("Parsed from: %s", from)
     log.Printf("Email to validate: %s", email)
-
-    // Check if email is empty before parsing
-    if email == "" {
-        log.Printf("Email is empty, skipping validation")
-        // Skip validation for empty email - this might be a duplicate submission
-        return
-    }
 
     to, err := parseAddr("email (destinatario)", email)
     if err != nil {
