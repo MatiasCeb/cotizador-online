@@ -252,7 +252,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		m.SetHeader("Subject", "Cotización de Garantía")
 		m.SetBody("text/plain", body)
 
-		d := gomail.NewDialer("smtp.gmail.com", 587, from, password)
+		d := gomail.NewDialer("smtp.gmail.com", 465, from, password)
 
 		if err := d.DialAndSend(m); err != nil {
 			data.Success = false
