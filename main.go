@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"gopkg.in/gomail.v2"
 )
@@ -307,14 +309,30 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
     log.Printf("Attempting to send email to: %s", to)
-    err = d.DialAndSend(m)
-    if err != nil {
-        log.Printf("Email send error: %v", err)
+
+    // Use context with timeout to avoid hanging
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+    done := make(chan error, 1)
+    go func() {
+        done <- d.DialAndSend(m)
+    }()
+
+    select {
+    case err = <-done:
+        if err != nil {
+            log.Printf("Email send error: %v", err)
+            data.Success = false
+            data.Error = "Error enviando email: " + err.Error()
+        } else {
+            log.Printf("Email sent successfully to: %s", to)
+            data.Success = true
+        }
+    case <-ctx.Done():
+        log.Printf("Email send timeout")
         data.Success = false
-        data.Error = "Error enviando email: " + err.Error()
-    } else {
-        log.Printf("Email sent successfully to: %s", to)
-        data.Success = true
+        data.Error = "Timeout enviando email"
     }
     log.Printf("Email send result: success=%t, error=%v", data.Success, err)
 
