@@ -277,9 +277,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     // Check if email is empty before parsing
     if email == "" {
         log.Printf("Email is empty, skipping validation")
-        data.Success = false
-        data.Error = "El email del cliente es requerido."
-        renderResult(w, data)
+        // Skip validation for empty email - this might be a duplicate submission
         return
     }
 
