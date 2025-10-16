@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -252,7 +253,8 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		m.SetHeader("Subject", "Cotización de Garantía")
 		m.SetBody("text/plain", body)
 
-		d := gomail.NewDialer("smtp.gmail.com", 465, from, password)
+		d := gomail.NewDialer("smtp-relay.gmail.com", 587, from, password)
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
 		if err := d.DialAndSend(m); err != nil {
 			data.Success = false
