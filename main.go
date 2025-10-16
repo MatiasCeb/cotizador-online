@@ -306,10 +306,13 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     d := gomail.NewDialer("smtp-relay.gmail.com", 587, "", "")
     d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
+    log.Printf("Attempting to send email to: %s", to)
     if err := d.DialAndSend(m); err != nil {
+        log.Printf("Email send error: %v", err)
         data.Success = false
         data.Error = "Error enviando email: " + err.Error()
     } else {
+        log.Printf("Email sent successfully to: %s", to)
         data.Success = true
     }
 
