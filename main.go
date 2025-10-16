@@ -273,6 +273,16 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     }
     log.Printf("Parsed from: %s", from)
     log.Printf("Email to validate: %s", email)
+
+    // Check if email is empty before parsing
+    if email == "" {
+        log.Printf("Email is empty, skipping validation")
+        data.Success = false
+        data.Error = "El email del cliente es requerido."
+        renderResult(w, data)
+        return
+    }
+
     to, err := parseAddr("email (destinatario)", email)
     if err != nil {
         log.Printf("ParseAddr error: %v", err)
