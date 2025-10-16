@@ -277,7 +277,6 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     )
 
     m := gomail.NewMessage()
-    // Podés dar “nombre” al From, pero el mail debe ser del dominio autorizado
     m.SetHeader("From", m.FormatAddress(from, "Mi App Cotizaciones"))
     m.SetHeader("To", to)
     m.SetHeader("Subject", "Cotización de Garantía")
