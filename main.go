@@ -238,8 +238,8 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	body := fmt.Sprintf("Cliente: %s %s\nTeléfono: %s\nEmail: %s\n\nCotización: Costo total $%d. Plan seleccionado: %s.", name, surname, phone, email, cost, plan)
 
-	from := os.Getenv("EMAIL_FROM")
-	password := os.Getenv("EMAIL_PASSWORD")
+	from := strings.TrimSpace(os.Getenv("EMAIL_FROM"))
+	password := strings.TrimSpace(os.Getenv("EMAIL_PASSWORD"))
 
 	data := ResultData{Email: email}
 
@@ -249,7 +249,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		m := gomail.NewMessage()
 		m.SetHeader("From", from)
-		m.SetHeader("To", email, from)
+		m.SetHeader("To", email)
 		m.SetHeader("Subject", "Cotización de Garantía")
 		m.SetBody("text/plain", body)
 
