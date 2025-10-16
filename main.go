@@ -307,7 +307,8 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
     log.Printf("Attempting to send email to: %s", to)
-    if err := d.DialAndSend(m); err != nil {
+    err = d.DialAndSend(m)
+    if err != nil {
         log.Printf("Email send error: %v", err)
         data.Success = false
         data.Error = "Error enviando email: " + err.Error()
@@ -315,6 +316,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
         log.Printf("Email sent successfully to: %s", to)
         data.Success = true
     }
+    log.Printf("Email send result: success=%t, error=%v", data.Success, err)
 
     renderResult(w, data)
 }
