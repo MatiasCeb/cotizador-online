@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"net/mail"
 	"os"
 	"strconv"
 	"strings"
@@ -226,44 +227,77 @@ func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
+func parseAddr(label, addr string) (string, error) {
+    a := strings.TrimSpace(addr)
+    if a == "" {
+        return "", fmt.Errorf("%s vacío", label)
+    }
+    if _, err := mail.ParseAddress(a); err != nil {
+        return "", fmt.Errorf("%s inválido (%v)", label, err)
+    }
+    return a, nil
+}
+
 func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	costStr := r.FormValue("cost")
-	plan := r.FormValue("plan")
-	name := r.FormValue("name")
-	surname := r.FormValue("surname")
-	phone := r.FormValue("phone")
+    // 1) Leer y sanitizar inputs
+    email := strings.TrimSpace(r.FormValue("email"))
+    costStr := strings.TrimSpace(r.FormValue("cost"))
+    plan := strings.TrimSpace(r.FormValue("plan"))
+    name := strings.TrimSpace(r.FormValue("name"))
+    surname := strings.TrimSpace(r.FormValue("surname"))
+    phone := strings.TrimSpace(r.FormValue("phone"))
 
-	cost, _ := strconv.Atoi(costStr)
+    cost, _ := strconv.Atoi(costStr) // si no es número, queda 0
 
-	body := fmt.Sprintf("Cliente: %s %s\nTeléfono: %s\nEmail: %s\n\nCotización: Costo total $%d. Plan seleccionado: %s.", name, surname, phone, email, cost, plan)
+    // 2) Variables de entorno
+    fromEnv := strings.TrimSpace(os.Getenv("EMAIL_FROM")) // ej: cotizaciones@tudominio.com
 
-	from := strings.TrimSpace(os.Getenv("EMAIL_FROM"))
-	password := strings.TrimSpace(os.Getenv("EMAIL_PASSWORD"))
+    data := ResultData{Email: email}
 
-	data := ResultData{Email: email}
+    // 3) Validaciones de direcciones
+    from, err := parseAddr("EMAIL_FROM", fromEnv)
+    if err != nil {
+        data.Success = false
+        data.Error = "Configurá EMAIL_FROM con un mail válido del dominio (Workspace). " + err.Error()
+        renderResult(w, data)
+        return
+    }
+    to, err := parseAddr("email (destinatario)", email)
+    if err != nil {
+        data.Success = false
+        data.Error = "El email del cliente es inválido. " + err.Error()
+        renderResult(w, data)
+        return
+    }
 
-	if from == "" || password == "" {
-		data.Success = false
-		data.Error = "Configurar variables de entorno EMAIL_FROM y EMAIL_PASSWORD"
-	} else {
-		m := gomail.NewMessage()
-		m.SetHeader("From", from)
-		m.SetHeader("To", email)
-		m.SetHeader("Subject", "Cotización de Garantía")
-		m.SetBody("text/plain", body)
+    // 4) Armar mensaje
+    body := fmt.Sprintf(
+        "Cliente: %s %s\nTeléfono: %s\nEmail: %s\n\nCotización: Costo total $%d. Plan seleccionado: %s.",
+        name, surname, phone, to, cost, plan,
+    )
 
-		d := gomail.NewDialer("smtp-relay.gmail.com", 587, from, password)
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+    m := gomail.NewMessage()
+    // Podés dar “nombre” al From, pero el mail debe ser del dominio autorizado
+    m.SetHeader("From", m.FormatAddress(from, "Mi App Cotizaciones"))
+    m.SetHeader("To", to)
+    m.SetHeader("Subject", "Cotización de Garantía")
+    m.SetBody("text/plain", body)
 
-		if err := d.DialAndSend(m); err != nil {
-			data.Success = false
-			data.Error = err.Error()
-		} else {
-			data.Success = true
-		}
-	}
+    // 5) Dialer para SMTP Relay (por IP): sin auth y con STARTTLS obligatorio
+    d := gomail.NewDialer("smtp-relay.gmail.com", 587, "", "")
+    d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
-	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/result.html"))
-	tmpl.Execute(w, data)
+    if err := d.DialAndSend(m); err != nil {
+        data.Success = false
+        data.Error = "Error enviando email: " + err.Error()
+    } else {
+        data.Success = true
+    }
+
+    renderResult(w, data)
+}
+
+func renderResult(w http.ResponseWriter, data ResultData) {
+    tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/result.html"))
+    _ = tmpl.Execute(w, data)
 }
