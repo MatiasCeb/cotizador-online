@@ -240,7 +240,7 @@ func parseAddr(label, addr string) (string, error) {
 
 func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     // 1) Leer y sanitizar inputs
-    email := strings.TrimSpace(r.FormValue("email"))
+    email := strings.TrimSpace(r.FormValue("solicitudes@raicessa.com"))
     costStr := strings.TrimSpace(r.FormValue("cost"))
     plan := strings.TrimSpace(r.FormValue("plan"))
     name := strings.TrimSpace(r.FormValue("name"))
