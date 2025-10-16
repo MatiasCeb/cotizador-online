@@ -261,6 +261,8 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
     data := ResultData{Email: email}
 
+    log.Printf("EMAIL_FROM env: %s", fromEnv)
+
     // 3) Validaciones de direcciones
     from, err := parseAddr("EMAIL_FROM", fromEnv)
     if err != nil {
@@ -269,13 +271,17 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
         renderResult(w, data)
         return
     }
+    log.Printf("Parsed from: %s", from)
+    log.Printf("Email to validate: %s", email)
     to, err := parseAddr("email (destinatario)", email)
     if err != nil {
+        log.Printf("ParseAddr error: %v", err)
         data.Success = false
         data.Error = "El email del cliente es inválido. " + err.Error()
         renderResult(w, data)
         return
     }
+    log.Printf("Parsed to: %s", to)
 
     // 4) Armar mensaje
     body := fmt.Sprintf(
