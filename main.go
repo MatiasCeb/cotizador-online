@@ -240,6 +240,11 @@ func parseAddr(label, addr string) (string, error) {
 
 func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
     // 1) Leer y sanitizar inputs
+    if err := r.ParseForm(); err != nil {
+        data := ResultData{Success: false, Error: "Error parsing form: " + err.Error()}
+        renderResult(w, data)
+        return
+    }
     email := strings.TrimSpace(r.FormValue("email"))
     costStr := strings.TrimSpace(r.FormValue("cost"))
     plan := strings.TrimSpace(r.FormValue("plan"))
