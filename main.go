@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -46,6 +47,7 @@ type EmailData struct {
 	Name         string
 	Surname      string
 	Phone        string
+	Email        string
 	TipoGarantia string
 	TipoAlquiler string
 	Duracion     int
@@ -256,6 +258,7 @@ func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
 		Name:         "",
 		Surname:      "",
 		Phone:        "",
+		Email:        "",
 		TipoGarantia: tipoGarantia,
 		TipoAlquiler: tipoAlquiler,
 		Duracion:     duracion,
@@ -364,58 +367,54 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Parsed to: %s", to)
 
-	// 4) Armar mensaje HTML
-	htmlBody := fmt.Sprintf(`
-<!DOCTYPE html>
-<html>
-<head>
-	   <meta charset="UTF-8">
-	   <title>Cotización de Garantía</title>
-	   <style>
-	       body { font-family: Arial, sans-serif; margin: 20px; }
-	       .header { background-color: #f0f0f0; padding: 10px; border-radius: 5px; }
-	       .info { margin: 10px 0; }
-	       .cost { font-size: 18px; font-weight: bold; color: #007bff; }
-	   </style>
-</head>
-<body>
-	   <div class="header">
-	       <h2>Cotización de Garantía de Alquiler</h2>
-	   </div>
+	// 4) Armar mensaje HTML usando template
+	tmpl, err := template.ParseFiles("templates/email_body.html")
+	if err != nil {
+		data.Success = false
+		data.Error = "Error loading email template: " + err.Error()
+		renderResult(w, data)
+		return
+	}
 
-	   <div class="info">
-	       <h3>Datos del Cliente:</h3>
-	       <p><strong>Nombre:</strong> %s %s</p>
-	       <p><strong>Teléfono:</strong> %s</p>
-	       <p><strong>Email:</strong> %s</p>
-	   </div>
+	emailData := struct {
+		Name         string
+		Surname      string
+		Phone        string
+		Email        string
+		TipoGarantia string
+		TipoAlquiler string
+		Duracion     int
+		ValorMes     float64
+		Expensas     float64
+		Plan         string
+		Cost         int
+	}{
+		Name:         name,
+		Surname:      surname,
+		Phone:        phone,
+		Email:        to,
+		TipoGarantia: tipoGarantia,
+		TipoAlquiler: tipoAlquiler,
+		Duracion:     duracion,
+		ValorMes:     valorMes,
+		Expensas:     expensas,
+		Plan:         plan,
+		Cost:         cost,
+	}
 
-	   <div class="info">
-	       <h3>Detalles de la Garantía:</h3>
-	       <p><strong>Tipo de Garantía:</strong> %s</p>
-	       <p><strong>Tipo de Alquiler:</strong> %s</p>
-	       <p><strong>Duración del Contrato:</strong> %d meses</p>
-	       <p><strong>Costo de Alquiler Promedio:</strong> $%.2f</p>
-	       <p><strong>Costo de Expensas:</strong> $%.2f</p>
-	   </div>
-
-	   <div class="info">
-	       <h3>Plan de Pago Seleccionado:</h3>
-	       <p><strong>Plan:</strong> %s</p>
-	       <p class="cost"><strong>Costo Total:</strong> $%d</p>
-	   </div>
-
-	   <p>Gracias por utilizar nuestro servicio de cotización.</p>
-</body>
-</html>`,
-		name, surname, phone, to, tipoGarantia, tipoAlquiler, duracion, valorMes, expensas, plan, cost,
-	)
+	var htmlBody bytes.Buffer
+	if err := tmpl.Execute(&htmlBody, emailData); err != nil {
+		data.Success = false
+		data.Error = "Error executing email template: " + err.Error()
+		renderResult(w, data)
+		return
+	}
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", m.FormatAddress(from, "Mi App Cotizaciones"))
 	m.SetHeader("To", to, admin)
 	m.SetHeader("Subject", "Cotización de Garantía")
-	m.SetBody("text/html", htmlBody)
+	m.SetBody("text/html", htmlBody.String())
 
 	// 5) Dialer para Gmail SMTP con autenticación
 	d := gomail.NewDialer("smtp.gmail.com", 587, userEnv, passEnv)
