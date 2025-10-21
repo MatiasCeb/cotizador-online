@@ -402,13 +402,13 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	raicesLogo, err := getImageBase64("static/raices-logo.png")
 	if err != nil {
 		log.Printf("Error loading raices logo: %v", err)
-		raicesLogo = "" // fallback to empty
+		raicesLogo = "https://via.placeholder.com/600x100/ffffff/000000?text=RAICES+LOGO"
 	}
 
 	ssnLogo, err := getImageBase64("static/SSN_Argentina_logo.png")
 	if err != nil {
 		log.Printf("Error loading SSN logo: %v", err)
-		ssnLogo = "" // fallback to empty
+		ssnLogo = "https://via.placeholder.com/200x50/ffffff/000000?text=SSN+LOGO"
 	}
 
 	emailData := struct {
