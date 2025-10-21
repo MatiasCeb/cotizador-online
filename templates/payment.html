@@ -10,15 +10,15 @@
 
 <section id="payment">
 <h2>Plan de Pago</h2>
-<p>Costo total de la garantía: ${{.Data.Cost}}</p>
-{{if .Data.DiscountApplied}}
-<p>Costo original: ${{.Data.OriginalCost}}</p>
+<p>Costo total de la garantía: ${{.Cost}}</p>
+{{if .DiscountApplied}}
+<p>Costo original: ${{.OriginalCost}}</p>
 {{end}}
-{{if .Data.DiscountMessage}}
-<p>{{.Data.DiscountMessage}}</p>
+{{if .DiscountMessage}}
+<p>{{.DiscountMessage}}</p>
 {{end}}
 <form hx-post="/select-plan" hx-target="body" hx-swap="innerHTML">
-    <input type="hidden" name="cost" value="{{.Data.Cost}}">
+    <input type="hidden" name="cost" value="{{.Cost}}">
     <input type="hidden" name="tipo-garantia" value="{{.TipoGarantia}}">
     <input type="hidden" name="tipo-alquiler" value="{{.TipoAlquiler}}">
     <input type="hidden" name="duracion" value="{{.Duracion}}">
@@ -26,7 +26,7 @@
     <input type="hidden" name="expensas" value="{{.Expensas}}">
     <label class="payment-label">Seleccione forma de pago:</label>
     <div class="payment-plans">
-        {{range .Data.Plans}}
+        {{range .Plans}}
         <div class="plan-card">
             <input type="radio" name="plan-pago" value="{{.Name}}|{{.Amount}}" id="{{.Name}}" required>
             <label for="{{.Name}}">

@@ -26,6 +26,11 @@ type CalculationData struct {
 	DiscountMessage string
 	Plans           []PaymentPlan
 	Step            int
+	TipoGarantia    string
+	TipoAlquiler    string
+	Duracion        int
+	ValorMes        float64
+	Expensas        float64
 }
 
 type PaymentPlan struct {
@@ -212,17 +217,15 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 		DiscountMessage: discountMessage,
 		Plans:           plans,
 		Step:            2,
+		TipoGarantia:    tipoGarantia,
+		TipoAlquiler:    tipoAlquiler,
+		Duracion:        duracion,
+		ValorMes:        valorMes,
+		Expensas:        expensas,
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/payment.html"))
-	tmpl.ExecuteTemplate(w, "base", map[string]interface{}{
-		"Data":         data,
-		"TipoGarantia": tipoGarantia,
-		"TipoAlquiler": tipoAlquiler,
-		"Duracion":     duracion,
-		"ValorMes":     valorMes,
-		"Expensas":     expensas,
-	})
+	tmpl.Execute(w, data)
 }
 
 func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
