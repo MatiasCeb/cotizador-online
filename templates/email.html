@@ -14,6 +14,11 @@
 <form hx-post="/send-email" hx-target="body" hx-swap="innerHTML" hx-indicator="#loading" hx-disabled-elt="#submit-btn">
     <input type="hidden" name="cost" value="{{.Cost}}">
     <input type="hidden" name="plan" value="{{.Plan}}">
+    <input type="hidden" name="tipo-garantia" value="{{.TipoGarantia}}">
+    <input type="hidden" name="tipo-alquiler" value="{{.TipoAlquiler}}">
+    <input type="hidden" name="duracion" value="{{.Duracion}}">
+    <input type="hidden" name="valor-mes" value="{{.ValorMes}}">
+    <input type="hidden" name="expensas" value="{{.Expensas}}">
     <label for="name">Nombre:</label>
     <input type="text" name="name" id="name" required><br>
     <label for="surname">Apellido:</label>

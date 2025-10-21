@@ -36,11 +36,16 @@ type PaymentPlan struct {
 }
 
 type EmailData struct {
-	Cost    int
-	Plan    string
-	Name    string
-	Surname string
-	Phone   string
+	Cost         int
+	Plan         string
+	Name         string
+	Surname      string
+	Phone        string
+	TipoGarantia string
+	TipoAlquiler string
+	Duracion     int
+	ValorMes     float64
+	Expensas     float64
 }
 
 type ResultData struct {
@@ -121,6 +126,8 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tipoGarantia := r.FormValue("tipo-garantia")
+	tipoAlquiler := r.FormValue("tipo-alquiler")
 	duracionStr := r.FormValue("duracion")
 	valorMesStr := r.FormValue("valor-mes")
 	expensasStr := r.FormValue("expensas")
@@ -208,7 +215,14 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/payment.html"))
-	tmpl.Execute(w, data)
+	tmpl.ExecuteTemplate(w, "base", map[string]interface{}{
+		"Data":         data,
+		"TipoGarantia": tipoGarantia,
+		"TipoAlquiler": tipoAlquiler,
+		"Duracion":     duracion,
+		"ValorMes":     valorMes,
+		"Expensas":     expensas,
+	})
 }
 
 func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
@@ -223,7 +237,28 @@ func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
 	costStr := parts[1]
 	cost, _ := strconv.Atoi(costStr)
 
-	data := EmailData{Cost: cost, Plan: plan, Name: "", Surname: "", Phone: ""}
+	tipoGarantia := r.FormValue("tipo-garantia")
+	tipoAlquiler := r.FormValue("tipo-alquiler")
+	duracionStr := r.FormValue("duracion")
+	valorMesStr := r.FormValue("valor-mes")
+	expensasStr := r.FormValue("expensas")
+
+	duracion, _ := strconv.Atoi(duracionStr)
+	valorMes, _ := strconv.ParseFloat(valorMesStr, 64)
+	expensas, _ := strconv.ParseFloat(expensasStr, 64)
+
+	data := EmailData{
+		Cost:         cost,
+		Plan:         plan,
+		Name:         "",
+		Surname:      "",
+		Phone:        "",
+		TipoGarantia: tipoGarantia,
+		TipoAlquiler: tipoAlquiler,
+		Duracion:     duracion,
+		ValorMes:     valorMes,
+		Expensas:     expensas,
+	}
 
 	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/email.html"))
 	tmpl.Execute(w, data)
@@ -253,6 +288,15 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.FormValue("name"))
 	surname := strings.TrimSpace(r.FormValue("surname"))
 	phone := strings.TrimSpace(r.FormValue("phone"))
+	tipoGarantia := strings.TrimSpace(r.FormValue("tipo-garantia"))
+	tipoAlquiler := strings.TrimSpace(r.FormValue("tipo-alquiler"))
+	duracionStr := strings.TrimSpace(r.FormValue("duracion"))
+	valorMesStr := strings.TrimSpace(r.FormValue("valor-mes"))
+	expensasStr := strings.TrimSpace(r.FormValue("expensas"))
+
+	duracion, _ := strconv.Atoi(duracionStr)
+	valorMes, _ := strconv.ParseFloat(valorMesStr, 64)
+	expensas, _ := strconv.ParseFloat(expensasStr, 64)
 
 	// Skip processing if this is an empty form submission (likely duplicate HTMX request)
 	if email == "" && costStr == "" && plan == "" && name == "" && surname == "" && phone == "" {
@@ -317,17 +361,58 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Parsed to: %s", to)
 
-	// 4) Armar mensaje
-	body := fmt.Sprintf(
-		"Cliente: %s %s\nTeléfono: %s\nEmail: %s\n\nCotización: Costo total $%d. Plan seleccionado: %s.",
-		name, surname, phone, to, cost, plan,
+	// 4) Armar mensaje HTML
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+	   <meta charset="UTF-8">
+	   <title>Cotización de Garantía</title>
+	   <style>
+	       body { font-family: Arial, sans-serif; margin: 20px; }
+	       .header { background-color: #f0f0f0; padding: 10px; border-radius: 5px; }
+	       .info { margin: 10px 0; }
+	       .cost { font-size: 18px; font-weight: bold; color: #007bff; }
+	   </style>
+</head>
+<body>
+	   <div class="header">
+	       <h2>Cotización de Garantía de Alquiler</h2>
+	   </div>
+
+	   <div class="info">
+	       <h3>Datos del Cliente:</h3>
+	       <p><strong>Nombre:</strong> %s %s</p>
+	       <p><strong>Teléfono:</strong> %s</p>
+	       <p><strong>Email:</strong> %s</p>
+	   </div>
+
+	   <div class="info">
+	       <h3>Detalles de la Garantía:</h3>
+	       <p><strong>Tipo de Garantía:</strong> %s</p>
+	       <p><strong>Tipo de Alquiler:</strong> %s</p>
+	       <p><strong>Duración del Contrato:</strong> %d meses</p>
+	       <p><strong>Costo de Alquiler Promedio:</strong> $%.2f</p>
+	       <p><strong>Costo de Expensas:</strong> $%.2f</p>
+	   </div>
+
+	   <div class="info">
+	       <h3>Plan de Pago Seleccionado:</h3>
+	       <p><strong>Plan:</strong> %s</p>
+	       <p class="cost"><strong>Costo Total:</strong> $%d</p>
+	   </div>
+
+	   <p>Gracias por utilizar nuestro servicio de cotización.</p>
+</body>
+</html>`,
+		name, surname, phone, to, tipoGarantia, tipoAlquiler, duracion, valorMes, expensas, plan, cost,
 	)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", m.FormatAddress(from, "Mi App Cotizaciones"))
 	m.SetHeader("To", to, admin)
 	m.SetHeader("Subject", "Cotización de Garantía")
-	m.SetBody("text/plain", body)
+	m.SetBody("text/html", htmlBody)
 
 	// 5) Dialer para Gmail SMTP con autenticación
 	d := gomail.NewDialer("smtp.gmail.com", 587, userEnv, passEnv)
