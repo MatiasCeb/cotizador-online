@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -367,13 +369,46 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Parsed to: %s", to)
 
-	// 4) Armar mensaje HTML usando template
+	// 4) Armar mensaje HTML usando template con imágenes embebidas
 	tmpl, err := template.ParseFiles("templates/email_body.html")
 	if err != nil {
 		data.Success = false
 		data.Error = "Error loading email template: " + err.Error()
 		renderResult(w, data)
 		return
+	}
+
+	// Función para convertir imagen a base64
+	getImageBase64 := func(imagePath string) (string, error) {
+		file, err := os.Open(imagePath)
+		if err != nil {
+			return "", err
+		}
+		defer file.Close()
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			return "", err
+		}
+
+		mimeType := "image/png"
+		if strings.HasSuffix(strings.ToLower(imagePath), ".jpg") || strings.HasSuffix(strings.ToLower(imagePath), ".jpeg") {
+			mimeType = "image/jpeg"
+		}
+
+		return "data:" + mimeType + ";base64," + base64.StdEncoding.EncodeToString(data), nil
+	}
+
+	raicesLogo, err := getImageBase64("static/raices-logo.png")
+	if err != nil {
+		log.Printf("Error loading raices logo: %v", err)
+		raicesLogo = "" // fallback to empty
+	}
+
+	ssnLogo, err := getImageBase64("static/SSN_Argentina_logo.png")
+	if err != nil {
+		log.Printf("Error loading SSN logo: %v", err)
+		ssnLogo = "" // fallback to empty
 	}
 
 	emailData := struct {
@@ -388,6 +423,8 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		Expensas     float64
 		Plan         string
 		Cost         int
+		RaicesLogo   string
+		SSNLogo      string
 	}{
 		Name:         name,
 		Surname:      surname,
@@ -400,6 +437,8 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		Expensas:     expensas,
 		Plan:         plan,
 		Cost:         cost,
+		RaicesLogo:   raicesLogo,
+		SSNLogo:      ssnLogo,
 	}
 
 	var htmlBody bytes.Buffer
