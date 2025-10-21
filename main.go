@@ -331,7 +331,10 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 5) Dialer para Gmail SMTP con autenticación
 	d := gomail.NewDialer("smtp.gmail.com", 587, userEnv, passEnv)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+	d.TLSConfig = &tls.Config{
+		ServerName:         "smtp.gmail.com",
+		InsecureSkipVerify: false,
+	}
 
 	log.Printf("Attempting to send email to: %s", to)
 
