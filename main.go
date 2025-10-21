@@ -19,28 +19,28 @@ import (
 )
 
 type CalculationData struct {
-	Cost int
-	OriginalCost int
+	Cost            int
+	OriginalCost    int
 	DiscountApplied bool
 	DiscountPercent int
 	DiscountMessage string
-	Plans []PaymentPlan
-	Step int
+	Plans           []PaymentPlan
+	Step            int
 }
 
 type PaymentPlan struct {
-	Name string
-	Amount int
+	Name     string
+	Amount   int
 	Discount int
 	PerCuota bool
 }
 
 type EmailData struct {
-	Cost     int
-	Plan     string
-	Name     string
-	Surname  string
-	Phone    string
+	Cost    int
+	Plan    string
+	Name    string
+	Surname string
+	Phone   string
 }
 
 type ResultData struct {
@@ -198,13 +198,13 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Number of plans: %d", len(plans))
 
 	data := CalculationData{
-		Cost: discountedCost,
-		OriginalCost: costRounded,
+		Cost:            discountedCost,
+		OriginalCost:    costRounded,
 		DiscountApplied: discountPercent > 0,
 		DiscountPercent: discountPercent,
 		DiscountMessage: discountMessage,
-		Plans: plans,
-		Step: 2,
+		Plans:           plans,
+		Step:            2,
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/payment.html"))
@@ -230,116 +230,141 @@ func selectPlanHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func parseAddr(label, addr string) (string, error) {
-    a := strings.TrimSpace(addr)
-    if a == "" {
-        return "", fmt.Errorf("%s vacío", label)
-    }
-    if _, err := mail.ParseAddress(a); err != nil {
-        return "", fmt.Errorf("%s inválido (%v)", label, err)
-    }
-    return a, nil
+	a := strings.TrimSpace(addr)
+	if a == "" {
+		return "", fmt.Errorf("%s vacío", label)
+	}
+	if _, err := mail.ParseAddress(a); err != nil {
+		return "", fmt.Errorf("%s inválido (%v)", label, err)
+	}
+	return a, nil
 }
 
 func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
-    // 1) Leer y sanitizar inputs
-    if err := r.ParseForm(); err != nil {
-        data := ResultData{Success: false, Error: "Error parsing form: " + err.Error()}
-        renderResult(w, data)
-        return
-    }
-    email := strings.TrimSpace(r.FormValue("email"))
-    costStr := strings.TrimSpace(r.FormValue("cost"))
-    plan := strings.TrimSpace(r.FormValue("plan"))
-    name := strings.TrimSpace(r.FormValue("name"))
-    surname := strings.TrimSpace(r.FormValue("surname"))
-    phone := strings.TrimSpace(r.FormValue("phone"))
+	// 1) Leer y sanitizar inputs
+	if err := r.ParseForm(); err != nil {
+		data := ResultData{Success: false, Error: "Error parsing form: " + err.Error()}
+		renderResult(w, data)
+		return
+	}
+	email := strings.TrimSpace(r.FormValue("email"))
+	costStr := strings.TrimSpace(r.FormValue("cost"))
+	plan := strings.TrimSpace(r.FormValue("plan"))
+	name := strings.TrimSpace(r.FormValue("name"))
+	surname := strings.TrimSpace(r.FormValue("surname"))
+	phone := strings.TrimSpace(r.FormValue("phone"))
 
-    // Skip processing if this is an empty form submission (likely duplicate HTMX request)
-    if email == "" && costStr == "" && plan == "" && name == "" && surname == "" && phone == "" {
-        log.Printf("Empty form submission detected, skipping")
-        return
-    }
+	// Skip processing if this is an empty form submission (likely duplicate HTMX request)
+	if email == "" && costStr == "" && plan == "" && name == "" && surname == "" && phone == "" {
+		log.Printf("Empty form submission detected, skipping")
+		return
+	}
 
-    log.Printf("Processing form values: email=%s, cost=%s, plan=%s, name=%s, surname=%s, phone=%s", email, costStr, plan, name, surname, phone)
+	log.Printf("Processing form values: email=%s, cost=%s, plan=%s, name=%s, surname=%s, phone=%s", email, costStr, plan, name, surname, phone)
 
-    cost, _ := strconv.Atoi(costStr) // si no es número, queda 0
+	cost, _ := strconv.Atoi(costStr) // si no es número, queda 0
 
-    // 2) Variables de entorno
-    fromEnv := strings.TrimSpace(os.Getenv("EMAIL_FROM")) // ej: cotizaciones@tudominio.com
+	// 2) Variables de entorno
+	fromEnv := strings.TrimSpace(os.Getenv("EMAIL_FROM"))   // ej: tuemail@gmail.com
+	userEnv := strings.TrimSpace(os.Getenv("EMAIL_USER"))   // usuario Gmail (generalmente el mismo que EMAIL_FROM)
+	passEnv := strings.TrimSpace(os.Getenv("EMAIL_PASS"))   // contraseña de aplicación de Gmail
+	adminEnv := strings.TrimSpace(os.Getenv("EMAIL_ADMIN")) // email del administrador al que le llegara copia del envio
 
-    data := ResultData{Email: email}
+	data := ResultData{Email: email}
 
-    log.Printf("EMAIL_FROM env: %s", fromEnv)
+	log.Printf("EMAIL_FROM env: %s", fromEnv)
+	log.Printf("EMAIL_USER env: %s", userEnv)
+	log.Printf("EMAIL_ADMIN env: %s", adminEnv)
 
-    // 3) Validaciones de direcciones
-    from, err := parseAddr("EMAIL_FROM", fromEnv)
-    if err != nil {
-        data.Success = false
-        data.Error = "Configurá EMAIL_FROM con un mail válido del dominio (Workspace). " + err.Error()
-        renderResult(w, data)
-        return
-    }
-    log.Printf("Parsed from: %s", from)
-    log.Printf("Email to validate: %s", email)
+	// 3) Validaciones de direcciones y credenciales
+	from, err := parseAddr("EMAIL_FROM", fromEnv)
+	if err != nil {
+		data.Success = false
+		data.Error = "Configurá EMAIL_FROM con un mail válido de Gmail. " + err.Error()
+		renderResult(w, data)
+		return
+	}
+	if userEnv == "" {
+		data.Success = false
+		data.Error = "Configurá EMAIL_USER con el usuario de Gmail."
+		renderResult(w, data)
+		return
+	}
+	if passEnv == "" {
+		data.Success = false
+		data.Error = "Configurá EMAIL_PASS con la contraseña de aplicación de Gmail."
+		renderResult(w, data)
+		return
+	}
+	admin, err := parseAddr("EMAIL_ADMIN", adminEnv)
+	if err != nil {
+		data.Success = false
+		data.Error = "Configurá EMAIL_ADMIN con un mail válido. " + err.Error()
+		renderResult(w, data)
+		return
+	}
+	log.Printf("Parsed from: %s", from)
+	log.Printf("Parsed admin: %s", admin)
+	log.Printf("Email to validate: %s", email)
 
-    to, err := parseAddr("email (destinatario)", email)
-    if err != nil {
-        log.Printf("ParseAddr error: %v", err)
-        data.Success = false
-        data.Error = "El email del cliente es inválido. " + err.Error()
-        renderResult(w, data)
-        return
-    }
-    log.Printf("Parsed to: %s", to)
+	to, err := parseAddr("email (destinatario)", email)
+	if err != nil {
+		log.Printf("ParseAddr error: %v", err)
+		data.Success = false
+		data.Error = "El email del cliente es inválido. " + err.Error()
+		renderResult(w, data)
+		return
+	}
+	log.Printf("Parsed to: %s", to)
 
-    // 4) Armar mensaje
-    body := fmt.Sprintf(
-        "Cliente: %s %s\nTeléfono: %s\nEmail: %s\n\nCotización: Costo total $%d. Plan seleccionado: %s.",
-        name, surname, phone, to, cost, plan,
-    )
+	// 4) Armar mensaje
+	body := fmt.Sprintf(
+		"Cliente: %s %s\nTeléfono: %s\nEmail: %s\n\nCotización: Costo total $%d. Plan seleccionado: %s.",
+		name, surname, phone, to, cost, plan,
+	)
 
-    m := gomail.NewMessage()
-    m.SetHeader("From", m.FormatAddress(from, "Mi App Cotizaciones"))
-    m.SetHeader("To", to)
-    m.SetHeader("Subject", "Cotización de Garantía")
-    m.SetBody("text/plain", body)
+	m := gomail.NewMessage()
+	m.SetHeader("From", m.FormatAddress(from, "Mi App Cotizaciones"))
+	m.SetHeader("To", to, admin)
+	m.SetHeader("Subject", "Cotización de Garantía")
+	m.SetBody("text/plain", body)
 
-    // 5) Dialer para SMTP Relay (por IP): sin auth y con STARTTLS obligatorio
-    d := gomail.NewDialer("smtp-relay.gmail.com", 587, "", "")
-    d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+	// 5) Dialer para Gmail SMTP con autenticación
+	d := gomail.NewDialer("smtp.gmail.com", 587, userEnv, passEnv)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
-    log.Printf("Attempting to send email to: %s", to)
+	log.Printf("Attempting to send email to: %s", to)
 
-    // Use context with timeout to avoid hanging
-    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-    defer cancel()
+	// Use context with timeout to avoid hanging
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-    done := make(chan error, 1)
-    go func() {
-        done <- d.DialAndSend(m)
-    }()
+	done := make(chan error, 1)
+	go func() {
+		done <- d.DialAndSend(m)
+	}()
 
-    select {
-    case err = <-done:
-        if err != nil {
-            log.Printf("Email send error: %v", err)
-            data.Success = false
-            data.Error = "Error enviando email: " + err.Error()
-        } else {
-            log.Printf("Email sent successfully to: %s", to)
-            data.Success = true
-        }
-    case <-ctx.Done():
-        log.Printf("Email send timeout")
-        data.Success = false
-        data.Error = "Timeout enviando email"
-    }
-    log.Printf("Email send result: success=%t, error=%v", data.Success, err)
+	select {
+	case err = <-done:
+		if err != nil {
+			log.Printf("Email send error: %v", err)
+			data.Success = false
+			data.Error = "Error enviando email: " + err.Error()
+		} else {
+			log.Printf("Email sent successfully to: %s", to)
+			data.Success = true
+		}
+	case <-ctx.Done():
+		log.Printf("Email send timeout")
+		data.Success = false
+		data.Error = "Timeout enviando email"
+	}
+	log.Printf("Email send result: success=%t, error=%v", data.Success, err)
 
-    renderResult(w, data)
+	renderResult(w, data)
 }
 
 func renderResult(w http.ResponseWriter, data ResultData) {
-    tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/result.html"))
-    _ = tmpl.Execute(w, data)
+	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/result.html"))
+	_ = tmpl.Execute(w, data)
 }
