@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io"
 	"log"
 	"math"
 	"net/http"
@@ -382,44 +380,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Función para convertir imagen a base64
-	getImageBase64 := func(imagePath string) (string, error) {
-		file, err := os.Open(imagePath)
-		if err != nil {
-			return "", err
-		}
-		defer file.Close()
-
-		data, err := io.ReadAll(file)
-		if err != nil {
-			return "", err
-		}
-
-		mimeType := "image/png"
-		if strings.HasSuffix(strings.ToLower(imagePath), ".jpg") || strings.HasSuffix(strings.ToLower(imagePath), ".jpeg") {
-			mimeType = "image/jpeg"
-		}
-
-		return "data:" + mimeType + ";base64," + base64.StdEncoding.EncodeToString(data), nil
-	}
-
-	raicesLogo, err := getImageBase64("static/raices-logo.png")
-	if err != nil {
-		log.Printf("Error loading raices logo: %v", err)
-		raicesLogo = "https://via.placeholder.com/600x100/ffffff/000000?text=RAICES+LOGO"
-	}
-
-	raicesBanner, err := getImageBase64("static/Raices_web_600x300px.jpg")
-	if err != nil {
-		log.Printf("Error loading raices banner: %v", err)
-		raicesBanner = "https://via.placeholder.com/600x300/ffffff/000000?text=RAICES+BANNER"
-	}
-
-	ssnLogo, err := getImageBase64("static/SSN_Argentina_logo.png")
-	if err != nil {
-		log.Printf("Error loading SSN logo: %v", err)
-		ssnLogo = "https://via.placeholder.com/200x50/ffffff/000000?text=SSN+LOGO"
-	}
+	// Images are now loaded from external URLs in the template
 
 	emailData := struct {
 		Name         string
@@ -433,9 +394,6 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		Expensas     float64
 		Plan         string
 		Cost         int
-		RaicesLogo   string
-		RaicesBanner string
-		SSNLogo      string
 	}{
 		Name:         name,
 		Surname:      surname,
@@ -448,9 +406,6 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		Expensas:     expensas,
 		Plan:         plan,
 		Cost:         cost,
-		RaicesLogo:   raicesLogo,
-		RaicesBanner: raicesBanner,
-		SSNLogo:      ssnLogo,
 	}
 
 	var htmlBody bytes.Buffer
