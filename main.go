@@ -331,18 +331,21 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// 3) Validaciones de direcciones y credenciales
 	from, err := parseAddr("EMAIL_FROM", fromEnv)
 	if err != nil {
+		log.Printf("EMAIL_FROM validation failed: %v", err)
 		data.Success = false
 		data.Error = "Configurá EMAIL_FROM con un mail válido de Gmail. " + err.Error()
 		renderResult(w, data)
 		return
 	}
 	if userEnv == "" {
+		log.Printf("EMAIL_USER is empty")
 		data.Success = false
 		data.Error = "Configurá EMAIL_USER con el usuario de Gmail."
 		renderResult(w, data)
 		return
 	}
 	if passEnv == "" {
+		log.Printf("EMAIL_PASS is empty")
 		data.Success = false
 		data.Error = "Configurá EMAIL_PASS con la contraseña de aplicación de Gmail."
 		renderResult(w, data)
@@ -350,6 +353,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	admin, err := parseAddr("EMAIL_ADMIN", adminEnv)
 	if err != nil {
+		log.Printf("EMAIL_ADMIN validation failed: %v", err)
 		data.Success = false
 		data.Error = "Configurá EMAIL_ADMIN con un mail válido. " + err.Error()
 		renderResult(w, data)
@@ -361,7 +365,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	to, err := parseAddr("email (destinatario)", email)
 	if err != nil {
-		log.Printf("ParseAddr error: %v", err)
+		log.Printf("ParseAddr error for recipient email: %v", err)
 		data.Success = false
 		data.Error = "El email del cliente es inválido. " + err.Error()
 		renderResult(w, data)
@@ -405,6 +409,12 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		raicesLogo = "https://via.placeholder.com/600x100/ffffff/000000?text=RAICES+LOGO"
 	}
 
+	raicesBanner, err := getImageBase64("static/Raices_web_600x300px.jpg")
+	if err != nil {
+		log.Printf("Error loading raices banner: %v", err)
+		raicesBanner = "https://via.placeholder.com/600x300/ffffff/000000?text=RAICES+BANNER"
+	}
+
 	ssnLogo, err := getImageBase64("static/SSN_Argentina_logo.png")
 	if err != nil {
 		log.Printf("Error loading SSN logo: %v", err)
@@ -424,6 +434,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		Plan         string
 		Cost         int
 		RaicesLogo   string
+		RaicesBanner string
 		SSNLogo      string
 	}{
 		Name:         name,
@@ -438,6 +449,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		Plan:         plan,
 		Cost:         cost,
 		RaicesLogo:   raicesLogo,
+		RaicesBanner: raicesBanner,
 		SSNLogo:      ssnLogo,
 	}
 
@@ -463,6 +475,9 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Attempting to send email to: %s", to)
+	log.Printf("Email subject: %s", "Cotización de Garantía")
+	log.Printf("Email from: %s", from)
+	log.Printf("Email to: %s, %s", to, admin)
 
 	// Use context with timeout to avoid hanging
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -477,14 +492,18 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	case err = <-done:
 		if err != nil {
 			log.Printf("Email send error: %v", err)
+			log.Printf("SMTP server: smtp.gmail.com:587")
+			log.Printf("Authentication user: %s", userEnv)
 			data.Success = false
 			data.Error = "Error enviando email: " + err.Error()
 		} else {
 			log.Printf("Email sent successfully to: %s", to)
+			log.Printf("Email also sent to admin: %s", admin)
 			data.Success = true
 		}
 	case <-ctx.Done():
-		log.Printf("Email send timeout")
+		log.Printf("Email send timeout after 10 seconds")
+		log.Printf("This may indicate network issues or SMTP server problems")
 		data.Success = false
 		data.Error = "Timeout enviando email"
 	}
