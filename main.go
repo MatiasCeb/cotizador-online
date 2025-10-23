@@ -417,9 +417,9 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", m.FormatAddress(from, "Mi App Cotizaciones"))
+	m.SetHeader("From", m.FormatAddress(from, "Raíces S.A."))
 	m.SetHeader("To", to, admin)
-	m.SetHeader("Subject", "Cotización de Garantía")
+	m.SetHeader("Subject", "Cotización - Garantía de Alquiler")
 	m.SetBody("text/html", htmlBody.String())
 
 	// 5) Dialer para Gmail SMTP con autenticación
