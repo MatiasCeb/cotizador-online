@@ -38,7 +38,7 @@
         <label for="cupon">Cupón de descuento:</label>
         <input type="text" name="cupon" id="cupon" autocomplete="off"><br>
 
-        <button type="submit">Calcular</button>
+        <button type="submit" onclick="fbq('track', 'Lead', {content_name: 'Quote Calculation'});">Calcular</button>
     </form>
 </section>
 {{end}}
