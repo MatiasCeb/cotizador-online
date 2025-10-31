@@ -257,6 +257,12 @@ button:disabled {
     font-size: 18px;
 }
 
+@media (max-width: 767px) {
+    h1 {
+        font-size: 1.5em;
+    }
+}
+
 @media (min-width: 768px) {
     .plan-card {
         flex: 1 1 calc(33.333% - 20px);
