@@ -258,7 +258,7 @@ button:disabled {
     font-size: 18px;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 480px) {
     h1 {
         font-size: 1.2em;
         line-height: 1.1;
